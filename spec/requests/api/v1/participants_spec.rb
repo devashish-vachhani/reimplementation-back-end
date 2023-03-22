@@ -1,5 +1,5 @@
 require 'swagger_helper'
-
+require 'assignment.rb'
 
 RSpec.describe 'api/v1/participants', type: :request do
 
@@ -10,19 +10,19 @@ RSpec.describe 'api/v1/participants', type: :request do
 
 
     get('index participants') do
-
-      #let(assignment) { "Assignment" }
-      let(:model) {"Assignment"}
-      let(:an_assignment) {double Assignment, id:1}
+      let(:model) { 'Assignment' }
       let(:id) { 1 }
-      #let(:params) { { id: 1, model: 'Assignment' } }
+      let(:assignment) { class_double(Assignment) }
+      let(:an_assignment) { instance_double(Assignment) }
+      let(:participants_array) { [] }
 
       before do
-        allow(Object).to receive(:const_get).with(model).and_return(Assignment)
-        allow(Assignment).to receive(:find).with(id).and_return(an_assignment)
-        allow(an_assignment).to receive(:participants).and_return([])
+        allow(Object).to receive(:const_get).with(model).and_return(assignment)
+        allow(Object).to receive(:const_get).and_call_original
+        allow(assignment).to receive(:find).with(id).and_return(an_assignment)
+        #allow(assignment).to receive(:participants).and_return(participants_array)
+        allow(an_assignment).to receive(:participants).and_return(participants_array)
       end
-
       response(200, 'successful') do
         after do |example|
           example.metadata[:response][:content] = {
