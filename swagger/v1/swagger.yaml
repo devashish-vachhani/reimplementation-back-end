@@ -4,6 +4,132 @@ info:
   title: EXPERTIZA API V1
   version: v1
 paths:
+  "/api/v1/participants/index/Assignment/1":
+    get:
+      summary: index participants
+      tags:
+      - participants
+      parameters:
+      - name: Assignment
+        id: 1
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/index/{model}/{id}":
+    parameters:
+    - name: model
+      in: path
+      description: model
+      required: true
+      schema:
+        type: string
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: list participants
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/{model}/{id}/{authorization}":
+    parameters:
+    - name: model
+      in: path
+      description: model
+      required: true
+      schema:
+        type: string
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    - name: authorization
+      in: path
+      description: authorization
+      required: true
+      schema:
+        type: string
+    post:
+      summary: create participant
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/change_handle/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    post:
+      summary: update_handle participant
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/update_authorizations/{id}/{authorization}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    - name: authorization
+      in: path
+      description: authorization
+      required: true
+      schema:
+        type: string
+    post:
+      summary: update_authorizations participant
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/inherit/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: inherit participant
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/bequeath/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: bequeath participant
+      responses:
+        '200':
+          description: successful
+  "/api/v1/participants/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    delete:
+      summary: delete participant
+      responses:
+        '200':
+          description: successful
   "/api/v1/roles":
     get:
       summary: list roles
