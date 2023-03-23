@@ -18,6 +18,7 @@ RSpec.describe 'api/v1/participants', type: :request do
   let(:id) { 1 }
   let(:an_assignment) { double("assignment") }
   let(:participants_array) {[double("participant")]}
+  allow(Object).to receive(:k).with(1).and_return("K")
 
 
   path '/api/v1/participants/index/{model}/{id}' do
@@ -27,7 +28,6 @@ RSpec.describe 'api/v1/participants', type: :request do
     get('index participants') do
       response(422, 'successful') do   
         after do |example|
-          allow(Object).to receive(:k).with(1).and_return("K")
           example.metadata[:response][:content] = {
             'application/json' => {
               #example: JSON.parse(response.body, model_object: "Assignment", participants:[])
