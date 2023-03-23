@@ -16,6 +16,7 @@ class Api::V1::ParticipantsController < ApplicationController
     # GET /participants/index/:model/:id
     def index
         begin
+            p Object.k(1)
             model_object = Object.const_get(params[:model]).find(params[:id])
             participants = model_object.participants
     

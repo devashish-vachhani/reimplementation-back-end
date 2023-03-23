@@ -25,13 +25,13 @@ RSpec.describe 'api/v1/participants', type: :request do
     parameter name: 'id', in: :path, type: :integer, description: 1
 
     get('index participants') do
-      response(200, 'successful') do   
+      response(422, 'successful') do   
         after do |example|
           allow(Object).to receive(:k).with(1).and_return("K")
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, model_object: "Assignment", participants:[])
-              #example: JSON.parse(response.body, error: "Missing or invalid required parameters")
+              #example: JSON.parse(response.body, model_object: "Assignment", participants:[])
+              example: JSON.parse(response.body, error: "Missing or invalid required parameters")
             }
           }
         end
