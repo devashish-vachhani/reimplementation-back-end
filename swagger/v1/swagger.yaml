@@ -21,7 +21,7 @@ paths:
     get:
       summary: index participants
       responses:
-        '200':
+        '422':
           description: successful
   "/api/v1/roles":
     get:

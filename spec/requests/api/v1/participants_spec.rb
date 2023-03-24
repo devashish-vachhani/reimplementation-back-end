@@ -16,16 +16,19 @@ end
 RSpec.describe 'api/v1/participants', type: :request do
   let(:model) { 'Assignment' }
   let(:id) { 1 }
-  let(:an_assignment) { double("assignment") }
-  let(:participants_array) {[double("participant")]}
-  allow(Object).to receive(:k).with(1).and_return("K")
-
+  let(:an_assignment) { instance_double("assignment") }
+  let(:participants_array) {[instance_double("participant")]}
 
   path '/api/v1/participants/index/{model}/{id}' do
     parameter name: 'model', in: :path, type: :string, description: 'Assignment'
     parameter name: 'id', in: :path, type: :integer, description: 1
 
     get('index participants') do
+      before do
+        allow(an_assignment).to receive(:id).and_return(1)
+        allow(Object).to receive(:k).with(1).and_return("Hello World")
+        allow(Object).to receive(:const_get).with("Assignment").and_return(Assignment)
+      end
       response(422, 'successful') do   
         after do |example|
           example.metadata[:response][:content] = {
