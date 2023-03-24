@@ -2,39 +2,37 @@ require 'swagger_helper'
 require 'spec_helper'
 require 'rails_helper'
 
-class Assignment < ApplicationRecord
-  belongs_to :participant
-end
+# class AssignmentParticipant < ApplicationRecord
+# end
 
-class AssignmentParticipant < ApplicationRecord
-end
-
-class Participant < ApplicationRecord
-  has_many :assignments
-end
+# class Participant < ApplicationRecord
+#   has_many :assignments
+# end
 
 RSpec.describe 'api/v1/participants', type: :request do
-  let(:model) { 'Assignment' }
-  let(:id) { 1 }
-  let(:an_assignment) { instance_double("assignment") }
-  let(:participants_array) {[instance_double("participant")]}
-
   path '/api/v1/participants/index/{model}/{id}' do
     parameter name: 'model', in: :path, type: :string, description: 'Assignment'
     parameter name: 'id', in: :path, type: :integer, description: 1
 
     get('index participants') do
+      let(:model) { 'Assignment' }
+      let(:id) { 1 }
+      let(:participants_array) {[instance_double(Participant)]}
+
+
       before do
-        allow(an_assignment).to receive(:id).and_return(1)
-        allow(Object).to receive(:k).with(1).and_return("Hello World")
-        allow(Object).to receive(:const_get).with("Assignment").and_return(Assignment)
+        an_assignment = instance_double(Assignment)
+        allow(Assignment).to receive(:find).with(id).and_return(an_assignment)
+        allow_any_instance_of(Assignment).to receive(:participants).and_return(participants_array)
+        allow(an_assignment).to receive(:participants).and_return(participants_array)
       end
-      response(422, 'successful') do   
+
+      response(200, 'successful') do   
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              #example: JSON.parse(response.body, model_object: "Assignment", participants:[])
-              example: JSON.parse(response.body, error: "Missing or invalid required parameters")
+              example: JSON.parse(response.body, model_object: "Assignment", participants:[])
+              #example: JSON.parse(response.body, error: "Missing or invalid required parameters")
             }
           }
         end
@@ -42,6 +40,39 @@ RSpec.describe 'api/v1/participants', type: :request do
       end
     end
   end
+
+  path '/api/v1/participants/index/{model}/{id}' do
+    parameter name: 'model', in: :path, type: :string, description: 'Assignment'
+    parameter name: 'id', in: :path, type: :integer, description: 1
+
+    get('index participants') do
+      let(:model) { 'Course' }
+      let(:id) { 1 }
+      let(:participants_array) {[instance_double(Participant)]}
+
+
+      before do
+        a_course = instance_double(Course)
+        allow(Course).to receive(:find).with(id).and_return(a_course)
+        allow_any_instance_of(Course).to receive(:participants).and_return(participants_array)
+        allow(a_course).to receive(:participants).and_return(participants_array)
+      end
+      response(200, 'successful') do   
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, model_object: "Course", participants:[])
+              #example: JSON.parse(response.body, error: "Missing or invalid required parameters")
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
+  
+
 end
 
   # path '/api/v1/participants/{model}/{id}/{authorization}' do

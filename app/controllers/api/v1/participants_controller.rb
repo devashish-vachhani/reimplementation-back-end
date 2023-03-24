@@ -16,15 +16,15 @@ class Api::V1::ParticipantsController < ApplicationController
     # GET /participants/index/:model/:id
     def index
         begin
-            p Object.k(1)
-            model_object = Object.const_get(params[:model]).find(params[:id])
+            model_object = Object.const_get(params[:model]).find(params[:id].to_i)
             participants = model_object.participants
     
             render json: {
                 "model_object": model_object,
                 "participants": participants,
             }, status: :ok
-        rescue
+        rescue => e
+            p e
             render json: { error: "Missing or invalid required parameters" }, status: :unprocessable_entity
         end
     end
