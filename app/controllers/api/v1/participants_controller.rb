@@ -60,11 +60,10 @@ class Api::V1::ParticipantsController < ApplicationController
     # updates the participant's handle in an assignment
     # POST /participants/change_handle/:id
     def update_handle
-        participant = AssignmentParticipant.find(params[:id])
+        participant = AssignmentParticipant.find(params[:id].to_i)
         if participant.handle == params[:participant][:handle]
             render json: { note: "Handle already in use" }, status: :ok
         end
-        
         if participant.update(participant_params)
             render json: { participant: participant }, status: :ok
         else
@@ -89,7 +88,7 @@ class Api::V1::ParticipantsController < ApplicationController
     # destroys a participant from an assignment or a course
     # DELETE /participants/:id
     def destroy
-        participant = Participant.find(params[:id])
+        participant = Participant.find(params[:id].to_i)
         if on_team?(participant)
           render json: { error: "This participant is on a team" }, status: :unprocessable_entity
         elsif participant.destroy
