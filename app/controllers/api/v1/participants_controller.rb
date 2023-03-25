@@ -38,7 +38,7 @@ class Api::V1::ParticipantsController < ApplicationController
           return
         end
       
-        model_object = Object.const_get(params[:model]).find(params[:id])
+        model_object = Object.const_get(params[:model]).find(params[:id].to_i)
     
         queried_participant = model_object.participants.find_by(user_id: user.id)
         if queried_participant.present?
