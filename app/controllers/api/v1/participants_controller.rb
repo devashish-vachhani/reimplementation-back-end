@@ -23,8 +23,7 @@ class Api::V1::ParticipantsController < ApplicationController
                 "model_object": model_object,
                 "participants": participants,
             }, status: :ok
-        rescue => e
-            p e
+        rescue
             render json: { error: "Missing or invalid required parameters" }, status: :unprocessable_entity
         end
     end

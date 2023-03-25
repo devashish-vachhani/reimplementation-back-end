@@ -64,6 +64,36 @@ RSpec.describe 'api/v1/participants', type: :request do
     end
   end
 
+  path '/api/v1/participants/index/{model}/{id}' do
+    parameter name: 'model', in: :path, type: :string
+    parameter name: 'id', in: :path, type: :integer, description: 1
+
+    get('index participants') do
+      let(:model) { 'Course' }
+      let(:id) { 1 }
+      let(:participants_array) {[instance_double(Participant)]}
+
+
+      before do
+        a_course = instance_double(Course)
+        allow(Course).to receive(:find).with(1).and_return(nil)
+        allow_any_instance_of(Course).to receive(:participants).and_return(participants_array)
+        allow(a_course).to receive(:participants).and_return(participants_array)
+      end
+      response(422, 'successful') do   
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              #example: JSON.parse(response.body, model_object: "Course", participants:[])
+              example: JSON.parse(response.body, error: "Missing or invalid required parameters")
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
   path '/api/v1/participants/{model}/{id}/{authorization}' do
     # You'll want to customize the parameter types...
     parameter name: 'model', in: :path, type: :string, description: 'model'
@@ -154,6 +184,47 @@ RSpec.describe 'api/v1/participants', type: :request do
       end
     end
   end
+
+  path '/api/v1/participants/change_handle/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    post('update_handle participant') do
+      consumes 'application/json'
+      produces 'application/json'
+
+      parameter name: :check_this, in: :body, schema: {
+        type: :object,
+        properties:{
+          participant: {type: :object}
+        }
+      }
+      let(:id) {1}
+      let(:old_handle) {'oldhandle'}
+      let(:new_handle) { 'newhandle' }
+      let(:assignment_participant) {instance_double(AssignmentParticipant)}
+      let(:a_participant) {instance_double(Participant)}
+      let(:participant) {{handle: new_handle}}
+      let(:check_this) {{participant: participant}}
+
+      before do
+        allow(AssignmentParticipant).to receive(:find).with(id).and_return(assignment_participant)
+        allow(assignment_participant).to receive(:handle).and_return(old_handle)
+        allow(assignment_participant).to receive(:update).and_return(false)
+        allow(assignment_participant).to receive(:errors).and_return("Error")
+
+      end
+      response(422, 'successful') do  
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, error: assignment_participant.errors)
+            }
+          }
+        end
+          run_test!
+      end
+    end
+  end
   
   path '/api/v1/participants/update_authorizations/{id}/{authorization}' do
     # You'll want to customize the parameter types...
@@ -175,6 +246,35 @@ RSpec.describe 'api/v1/participants', type: :request do
           example.metadata[:response][:content] = {
             'application/json' => {
               example: JSON.parse(response.body, symbolize_names: true)
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/participants/update_authorizations/{id}/{authorization}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    parameter name: 'authorization', in: :path, type: :string, description: 'authorization'
+    let(:id) { 1 }
+    let(:authorization) { '123' }
+    let(:a_participant) {instance_double(Participant)}
+
+    before do
+      allow(Participant).to receive(:find).with(id).and_return(a_participant)
+      allow(a_participant).to receive(:update).and_return(false)
+      allow(a_participant).to receive(:errors).and_return('Error')
+      #allow_any_instance_of(Api::V1::ParticipantsController).to receive(:participant_permissions).with(authorization).and_return([])
+    end
+    patch('update_authorizations participant') do
+      response(422, 'successful') do
+
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, error: a_participant.errors)
             }
           }
         end
@@ -209,6 +309,35 @@ RSpec.describe 'api/v1/participants', type: :request do
     end
   end
 
+  path '/api/v1/participants/inherit/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    
+    let(:id) {1}
+    let(:an_assignment) {instance_double(Assignment)}
+    let(:a_course) {instance_double(Course)}
+    before do
+      allow(Assignment).to receive(:find).and_return(an_assignment)
+      allow(an_assignment).to receive(:course).and_return(a_course)
+      allow(a_course).to receive(:participants).and_return([])
+      allow(Course).to receive(:name).and_return("Course")
+      allow(a_course).to receive(:name).and_return("Course")
+    end
+
+    get('inherit participant') do
+      response(200, 'successful') do
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, note: "No participants were found for this #{a_course.name}")
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
   path '/api/v1/participants/bequeath/{id}' do
     # You'll want to customize the parameter types...
     parameter name: 'id', in: :path, type: :integer, description: 'id'
@@ -225,6 +354,33 @@ RSpec.describe 'api/v1/participants', type: :request do
           example.metadata[:response][:content] = {
             'application/json' => {
               example: JSON.parse(response.body, symbolize_names: true)
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/participants/bequeath/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    let(:id) { 1 }
+    let(:an_assignment) {instance_double(Assignment)}
+    let(:a_course) {instance_double(Course)}
+    before do
+      allow(Assignment).to receive(:find).and_return(an_assignment)
+      allow(an_assignment).to receive(:course).and_return(a_course)
+      allow(an_assignment).to receive(:participants).and_return([])
+      allow(Course).to receive(:name).and_return("Course")
+      allow(an_assignment).to receive(:name).and_return("Assignment")
+    end
+    get('bequeath participant') do
+      response(200, 'successful') do
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, example: JSON.parse(response.body, note: "No participants were found for this #{an_assignment.name}"))
             }
           }
         end
@@ -261,4 +417,63 @@ RSpec.describe 'api/v1/participants', type: :request do
       end
     end
   end
+
+  path '/api/v1/participants/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    let(:id) { 1 }
+    let(:a_participant) {instance_double(Participant)}
+    let(:an_object) {instance_double(Object)}
+    
+    before do
+      allow(Participant).to receive(:find).with(id).and_return(a_participant)
+      allow(a_participant).to receive(:team).and_return(an_object)
+      allow(an_object).to receive(:present?).and_return(false)
+      allow(a_participant).to receive(:destroy).and_return(false)
+      allow(a_participant).to receive_message_chain(:user, :name).and_return('John Doe')
+    end
+
+    delete('delete participant') do
+      response(422, 'successful') do
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, error: "Failed to remove participant")
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/participants/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    let(:id) { 1 }
+    let(:a_participant) {instance_double(Participant)}
+    let(:an_object) {instance_double(Object)}
+    
+    before do
+      allow(Participant).to receive(:find).with(id).and_return(a_participant)
+      allow(a_participant).to receive(:team).and_return(an_object)
+      allow(an_object).to receive(:present?).and_return(true)
+      allow(a_participant).to receive(:destroy).and_return(false)
+      allow(a_participant).to receive_message_chain(:user, :name).and_return('John Doe')
+    end
+
+    delete('delete participant') do
+      response(422, 'successful') do
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, error: "This participant is on a team")
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
 end
