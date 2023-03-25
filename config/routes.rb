@@ -15,7 +15,7 @@ Rails.application.routes.draw do
           get 'index/:model/:id', to: 'participants#index'
           post ':model/:id/:authorization', to: 'participants#create'
           post 'change_handle/:id', to: 'participants#update_handle'
-          post 'update_authorizations/:id/:authorization', to: 'participants#update_authorizations'
+          patch 'update_authorizations/:id/:authorization', to: 'participants#update_authorizations'
           get 'inherit/:id', to: 'participants#inherit'
           get 'bequeath/:id', to: 'participants#bequeath'
         end

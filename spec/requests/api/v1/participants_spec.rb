@@ -155,29 +155,33 @@ RSpec.describe 'api/v1/participants', type: :request do
     end
   end
   
-  
+  path '/api/v1/participants/update_authorizations/{id}/{authorization}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :integer, description: 'id'
+    parameter name: 'authorization', in: :path, type: :string, description: 'authorization'
+    let(:id) { 1 }
+    let(:authorization) { '123' }
+    let(:a_participant) {instance_double(Participant)}
 
-  # path '/api/v1/participants/update_authorizations/{id}/{authorization}' do
-  #   # You'll want to customize the parameter types...
-  #   parameter name: 'id', in: :path, type: :integer, description: 'id'
-  #   parameter name: 'authorization', in: :path, type: :string, description: 'authorization'
-  #   let(:id) { 1 }
-  #   let(:authorization) { '123' }
-  #   post('update_authorizations participant') do
-  #     controller.send(:update_authorizations, id, authorization)
-  #     response(200, 'successful') do
+    before do
+      allow(Participant).to receive(:find).with(id).and_return(a_participant)
+      allow(a_participant).to receive(:update).and_return({:can_submit=>true, :can_review=>true, :can_take_quiz=>true})
+      #allow_any_instance_of(Api::V1::ParticipantsController).to receive(:participant_permissions).with(authorization).and_return([])
+    end
+    patch('update_authorizations participant') do
+      response(200, 'successful') do
 
-  #       after do |example|
-  #         example.metadata[:response][:content] = {
-  #           'application/json' => {
-  #             example: JSON.parse(response.body, symbolize_names: true)
-  #           }
-  #         }
-  #       end
-  #       run_test!
-  #     end
-  #   end
-  # end
+        after do |example|
+          example.metadata[:response][:content] = {
+            'application/json' => {
+              example: JSON.parse(response.body, symbolize_names: true)
+            }
+          }
+        end
+        run_test!
+      end
+    end
+  end
 
   path '/api/v1/participants/inherit/{id}' do
     # You'll want to customize the parameter types...
@@ -257,5 +261,4 @@ RSpec.describe 'api/v1/participants', type: :request do
       end
     end
   end
-
 end

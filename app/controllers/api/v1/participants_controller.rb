@@ -1,5 +1,5 @@
 class Api::V1::ParticipantsController < ApplicationController
-
+    include ParticipantsHelper
     def action_allowed?
         if %w[change_handle update_duties].include? params[:action]
             current_user_has_student_privileges?
@@ -32,6 +32,7 @@ class Api::V1::ParticipantsController < ApplicationController
     # creates a participant in an assignment or a course
     # POST /participants/:model/:id/:authorization
     def create
+        p params
         user = User.find_by(name: params[:user][:name])
         if user.nil?
           render json: { error: "User #{params[:user][:name]} does not exist" }, status: :not_found
@@ -63,18 +64,19 @@ class Api::V1::ParticipantsController < ApplicationController
         participant = AssignmentParticipant.find(params[:id].to_i)
         if participant.handle == params[:participant][:handle]
             render json: { note: "Handle already in use" }, status: :ok
-        end
-        if participant.update(participant_params)
-            render json: { participant: participant }, status: :ok
         else
-            render json: { error: participant.errors }, status: :unprocessable_entity
+            if participant.update(participant_params)
+                render json: { participant: participant }, status: :ok
+            else
+                render json: { error: participant.errors }, status: :unprocessable_entity
+            end
         end
     end
 
     # updates the permissions in an assignment or a course based on the participant role
     # POST /participants/update_authorizations/:id/:authorization
     def update_authorizations
-        participant = Participant.find(params[:id])
+        participant = Participant.find(params[:id].to_i)
         permissions = participant_permissions(params[:authorization])
         if participant.update(  can_submit: permissions[:can_submit], 
                                 can_review: permissions[:can_review], 
