@@ -32,7 +32,6 @@ class Api::V1::ParticipantsController < ApplicationController
     # creates a participant in an assignment or a course
     # POST /participants/:model/:id/:authorization
     def create
-        p params
         user = User.find_by(name: params[:user][:name])
         if user.nil?
           render json: { error: "User #{params[:user][:name]} does not exist" }, status: :not_found
