@@ -12,12 +12,12 @@ Rails.application.routes.draw do
       resources :assignments
       resources :participants, only: [:destroy] do
         collection do
-          get 'inherit/:id', to: 'participants#inherit'
-          get 'bequeath/:id', to: 'participants#bequeath'
           get 'index/:model/:id', to: 'participants#index'
           post ':model/:id', to: 'participants#create'
           patch 'update_handle/:id', to: 'participants#update_handle'
           patch 'update_authorization/:id', to: 'participants#update_authorization'
+          get 'inherit/:id', to: 'participants#inherit'
+          get 'bequeath/:id', to: 'participants#bequeath'
         end
       end
     end

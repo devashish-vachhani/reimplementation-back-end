@@ -1,21 +1,18 @@
 class Api::V1::ParticipantsController < ApplicationController
 
     # returns a list of participants of an assignment or a course
-    # GET /participants/:model/:id
+    # GET /participants/index/:model/:id
     def index
-        if params[:model].nil? || params[:id].nil?
-            render json: { error: "Missing required parameters" }, status: :unprocessable_entity
-        end
         begin
-            model_object = Object.const_get(params[:model]).find(params[:id].to_i)
+            model_object = Object.const_get(params[:model]).find(params[:id])
             participants = model_object.participants
-    
+
             render json: {
                 "model_object": model_object,
                 "participants": participants,
             }, status: :ok
         rescue
-            render json: { error: "Invalid required parameters" }, status: :not_found
+            render json: { error: "Invalid required parameters" }, status: :unprocessable_entity
         end
     end
 
@@ -130,7 +127,6 @@ class Api::V1::ParticipantsController < ApplicationController
         target = direction == :course_to_assignment ? assignment : course
 
         any_participant_copied = source.participants.any? { |participant| participant.copy(target.id) }
-
         if any_participant_copied 
             render json: { message: "The participants from #{source.name} were copied to #{target.name}" }, status: :created
         else 
