@@ -7,7 +7,7 @@ class Api::V1::ParticipantsController < ApplicationController
             render json: { error: "Missing required parameters" }, status: :unprocessable_entity
         end
         begin
-            model_object = Object.const_get(params[:model]).find(params[:id])
+            model_object = Object.const_get(params[:model]).find(params[:id].to_i)
             participants = model_object.participants
     
             render json: {
@@ -28,7 +28,7 @@ class Api::V1::ParticipantsController < ApplicationController
           return
         end
       
-        model_object = Object.const_get(params[:model]).find(params[:id])
+        model_object = Object.const_get(params[:model]).find(params[:id].to_i)
     
         queried_participant = model_object.participants.find_by(user_id: user.id)
         if queried_participant.present?
@@ -54,9 +54,10 @@ class Api::V1::ParticipantsController < ApplicationController
     # updates the participant's handle in an assignment
     # PATCH /participants/update_handle/:id
     def update_handle
-        participant = AssignmentParticipant.find(params[:id])
+        participant = AssignmentParticipant.find(params[:id].to_i)
         if participant.handle == params[:participant][:handle]
             render json: { note: "Handle already in use" }, status: :ok
+            return
         end
         
         if participant.update(participant_params)
@@ -69,7 +70,7 @@ class Api::V1::ParticipantsController < ApplicationController
     # updates the permissions in an assignment or a course based on the participant role
     # PATCH /participants/update_authorization/:id
     def update_authorization
-        participant = Participant.find(params[:id])
+        participant = Participant.find(params[:id].to_i)
         if participant.update(  can_submit: params[:participant][:can_submit], 
                                 can_review: params[:participant][:can_review], 
                                 can_take_quiz: params[:participant][:can_take_quiz]  )
@@ -82,7 +83,7 @@ class Api::V1::ParticipantsController < ApplicationController
     # destroys a participant from an assignment or a course
     # DELETE /participants/:id
     def destroy
-        participant = Participant.find(params[:id])
+        participant = Participant.find(params[:id].to_i)
         if on_team?(participant)
           render json: { error: "This participant is on a team" }, status: :unprocessable_entity
         elsif participant.destroy
@@ -91,7 +92,6 @@ class Api::V1::ParticipantsController < ApplicationController
             render json: { error: "Failed to remove participant" }, status: :unprocessable_entity
         end
     end
-      
 
     # copies existing participants from a course down to its assignment
     # GET /participants/inherit/:id
@@ -114,8 +114,7 @@ class Api::V1::ParticipantsController < ApplicationController
 
     # copies existing participants from source to target
     def copy_participants_from_source_to_target(assignment_id, direction)
-        assignment = Assignment.find(params[:id])
-        
+        assignment = Assignment.find(params[:id].to_i)
         course = assignment.course
         if course.nil?
             render json: { error: "No course was found for this assignment" }, status: :unprocessable_entity
@@ -131,6 +130,7 @@ class Api::V1::ParticipantsController < ApplicationController
         target = direction == :course_to_assignment ? assignment : course
 
         any_participant_copied = source.participants.any? { |participant| participant.copy(target.id) }
+
         if any_participant_copied 
             render json: { message: "The participants from #{source.name} were copied to #{target.name}" }, status: :created
         else 
