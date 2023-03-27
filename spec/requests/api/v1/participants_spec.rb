@@ -15,14 +15,14 @@ RSpec.describe 'api/v1/participants', type: :request do
       # mocking of model and participant array to return array of participants
       let(:model) { 'Assignment' }
       let(:id) { 1 }
-      let(:participants_array) {[instance_double(Participant)]}
+      let(:participants) {[instance_double(Participant)]}
 
       # stubbing methods in the mock objects
       before do
-        an_assignment = instance_double(Assignment)
-        allow(Assignment).to receive(:find).with(id).and_return(an_assignment)
-        allow_any_instance_of(Assignment).to receive(:participants).and_return(participants_array)
-        allow(an_assignment).to receive(:participants).and_return(participants_array)
+        assignment_instance = instance_double(Assignment)
+        allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
+        allow_any_instance_of(Assignment).to receive(:participants).and_return(participants)
+        allow(assignment_instance).to receive(:participants).and_return(participants)
       end
 
       # successful response giving a list of (empty) participants of a given assignment
@@ -50,14 +50,14 @@ RSpec.describe 'api/v1/participants', type: :request do
       # mocking models that are required
       let(:model) { 'Course' }
       let(:id) { 1 }
-      let(:participants_array) {[instance_double(Participant)]}
+      let(:participants) {[instance_double(Participant)]}
 
       # stubbing methods that are required in the mock objects
       before do
-        a_course = instance_double(Course)
-        allow(Course).to receive(:find).with(id).and_return(a_course)
-        allow_any_instance_of(Course).to receive(:participants).and_return(participants_array)
-        allow(a_course).to receive(:participants).and_return(participants_array)
+        course_instance = instance_double(Course)
+        allow(Course).to receive(:find).with(id).and_return(course_instance)
+        allow_any_instance_of(Course).to receive(:participants).and_return(participants)
+        allow(course_instance).to receive(:participants).and_return(participants)
       end
 
       # successful response which returns array of participants (empty) of the dpscified course
@@ -85,14 +85,14 @@ RSpec.describe 'api/v1/participants', type: :request do
       # mocking models that are required for the method call
       let(:model) { 'Course' }
       let(:id) { 1 }
-      let(:participants_array) {[instance_double(Participant)]}
+      let(:participants) {[instance_double(Participant)]}
 
       # stubbing methods on mock objects
       before do
-        a_course = instance_double(Course)
+        course_instance = instance_double(Course)
         allow(Course).to receive(:find).with(1).and_return(nil)
-        allow_any_instance_of(Course).to receive(:participants).and_return(participants_array)
-        allow(a_course).to receive(:participants).and_return(participants_array)
+        allow_any_instance_of(Course).to receive(:participants).and_return(participants)
+        allow(course_instance).to receive(:participants).and_return(participants)
       end
 
       # error response due to non existent ID for Assignment/Course
@@ -136,18 +136,18 @@ RSpec.describe 'api/v1/participants', type: :request do
         let(:name) {"ABCD"}
         let(:check_this) { {user: {name: name}} }
         let(:a_user) { instance_double(User) }
-        let(:an_assignment) {instance_double(Assignment)}
+        let(:assignment_instance) {instance_double(Assignment)}
         let(:a_participant) {instance_double(Participant)}
-        let(:participants_array) {[a_participant]}
+        let(:participants) {[a_participant]}
 
         # adding stubs to mock objects
         before do
           allow(a_user).to receive(:name).and_return(name)
           allow(a_user).to receive(:id).and_return(23)
-          allow(an_assignment).to receive(:id).and_return(1)
+          allow(assignment_instance).to receive(:id).and_return(1)
           allow(User).to receive(:find_by).with({name: name}).and_return(a_user)
-          allow(Assignment).to receive(:find).with(id).and_return(an_assignment)
-          allow(an_assignment).to receive(:participants).and_return(Participant)
+          allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
+          allow(assignment_instance).to receive(:participants).and_return(Participant)
           allow(Participant).to receive(:find_by).with({user_id: a_user.id}).and_return(a_participant)
           allow(a_participant).to receive(:present?).and_return(true)
           
@@ -338,13 +338,13 @@ RSpec.describe 'api/v1/participants', type: :request do
     
     # mocking models that are required for method execution
     let(:id) {1}
-    let(:an_assignment) {instance_double(Assignment)}
-    let(:a_course) {instance_double(Course)}
+    let(:assignment_instance) {instance_double(Assignment)}
+    let(:course_instance) {instance_double(Course)}
 
     # stubbing methods on mock objects
     before do
-      allow(Assignment).to receive(:find).and_return(an_assignment)
-      allow(an_assignment).to receive(:course).and_return(nil)
+      allow(Assignment).to receive(:find).and_return(assignment_instance)
+      allow(assignment_instance).to receive(:course).and_return(nil)
     end
 
     # GET Request to inherit method
@@ -372,16 +372,16 @@ RSpec.describe 'api/v1/participants', type: :request do
     
     # Mocking models that are required
     let(:id) {1}
-    let(:an_assignment) {instance_double(Assignment)}
-    let(:a_course) {instance_double(Course)}
+    let(:assignment_instance) {instance_double(Assignment)}
+    let(:course_instance) {instance_double(Course)}
 
     # stubbing methods that are required for mock objects
     before do
-      allow(Assignment).to receive(:find).and_return(an_assignment)
-      allow(an_assignment).to receive(:course).and_return(a_course)
-      allow(a_course).to receive(:participants).and_return([])
+      allow(Assignment).to receive(:find).and_return(assignment_instance)
+      allow(assignment_instance).to receive(:course).and_return(course_instance)
+      allow(course_instance).to receive(:participants).and_return([])
       allow(Course).to receive(:name).and_return("Course")
-      allow(a_course).to receive(:name).and_return("Course")
+      allow(course_instance).to receive(:name).and_return("Course")
     end
 
     # GET Request to inherit method of participant controller
@@ -392,7 +392,7 @@ RSpec.describe 'api/v1/participants', type: :request do
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, note: "No participants were found for this #{a_course.name}")
+              example: JSON.parse(response.body, note: "No participants were found for this #{course_instance.name}")
             }
           }
         end
@@ -408,13 +408,13 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # Mocking models that are required
     let(:id) { 1 }
-    let(:an_assignment) {instance_double(Assignment)}
-    let(:a_course) {instance_double(Course)}
+    let(:assignment_instance) {instance_double(Assignment)}
+    let(:course_instance) {instance_double(Course)}
 
     # stubbing methods on mock objects
     before do
-      allow(Assignment).to receive(:find).and_return(an_assignment)
-      allow(an_assignment).to receive(:course).and_return(nil)
+      allow(Assignment).to receive(:find).and_return(assignment_instance)
+      allow(assignment_instance).to receive(:course).and_return(nil)
     end
 
     # GET request to bequeath methof
@@ -439,16 +439,16 @@ RSpec.describe 'api/v1/participants', type: :request do
     parameter name: 'id', in: :path, type: :integer, description: 'id'
     # mocking objkects required for this method
     let(:id) { 1 }
-    let(:an_assignment) {instance_double(Assignment)}
-    let(:a_course) {instance_double(Course)}
+    let(:assignment_instance) {instance_double(Assignment)}
+    let(:course_instance) {instance_double(Course)}
 
     # stubbing methods for mock objects
     before do
-      allow(Assignment).to receive(:find).and_return(an_assignment)
-      allow(an_assignment).to receive(:course).and_return(a_course)
-      allow(an_assignment).to receive(:participants).and_return([])
+      allow(Assignment).to receive(:find).and_return(assignment_instance)
+      allow(assignment_instance).to receive(:course).and_return(course_instance)
+      allow(assignment_instance).to receive(:participants).and_return([])
       allow(Course).to receive(:name).and_return("Course")
-      allow(an_assignment).to receive(:name).and_return("Assignment")
+      allow(assignment_instance).to receive(:name).and_return("Assignment")
     end
 
     # GET Request to bequeath method
@@ -458,7 +458,7 @@ RSpec.describe 'api/v1/participants', type: :request do
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, example: JSON.parse(response.body, note: "No participants were found for this #{an_assignment.name}"))
+              example: JSON.parse(response.body, example: JSON.parse(response.body, note: "No participants were found for this #{assignment_instance.name}"))
             }
           }
         end
