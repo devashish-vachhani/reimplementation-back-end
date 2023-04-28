@@ -109,4 +109,20 @@ class User < ApplicationRecord
     self.email_on_review_of_review ||= false
     self.etc_icons_on_homepage ||= true
   end
+
+  def self.anonymized_view?(ip_address = nil)
+    # anonymized_view_starter_ips = $redis.get('anonymized_view_starter_ips') || ''
+    return true if ip_address && anonymized_view_starter_ips.include?(ip_address)
+
+    false
+  end
+
+  def name(ip_address = nil)
+    User.anonymized_view?(ip_address) ? role.name + ' ' + id.to_s : self[:name]
+  end
+
+  def fullname(ip_address = nil)
+    User.anonymized_view?(ip_address) ? role.name + ', ' + id.to_s : self[:fullname]
+  end
+
 end
