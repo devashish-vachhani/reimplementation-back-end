@@ -1,34 +1,34 @@
 class Participant < ApplicationRecord
-    include Scoring
-    include ParticipantsHelper
+    #include Scoring
+    #include ParticipantsHelper
 
     # paper trail is used to keep track of the changes that are made to the code (does not affect the codebase in anyway)
-    has_paper_trail
+    #has_paper_trail
     belongs_to :user
     belongs_to :topic, class_name: 'SignUpTopic', inverse_of: false
-    belongs_to :assignment, foreign_key: 'parent_id', inverse_of: false
-    has_many   :join_team_requests, dependent: :destroy
-    has_many   :reviews, class_name: 'ResponseMap', foreign_key: 'reviewer_id', dependent: :destroy, inverse_of: false
-    has_many   :team_reviews, class_name: 'ReviewResponseMap', foreign_key: 'reviewer_id', dependent: :destroy, inverse_of: false
+    #belongs_to :assignment, foreign_key: 'parent_id', inverse_of: false
+    #has_many   :join_team_requests, dependent: :destroy
+    #has_many   :reviews, class_name: 'ResponseMap', foreign_key: 'reviewer_id', dependent: :destroy, inverse_of: false
+    #has_many   :team_reviews, class_name: 'ReviewResponseMap', foreign_key: 'reviewer_id', dependent: :destroy, inverse_of: false
     has_many :response_maps, class_name: 'ResponseMap', foreign_key: 'reviewee_id', dependent: :destroy, inverse_of: false
-    has_many :awarded_badges, dependent: :destroy
-    has_many :badges, through: :awarded_badges
-    has_one :review_grade, dependent: :destroy
+    #has_many :awarded_badges, dependent: :destroy
+    #has_many :badges, through: :awarded_badges
+    #has_one :review_grade, dependent: :destroy
     #validation to ensure grade is of type numerical or nil
     validates :grade, numericality: { allow_nil: true }
-    has_paper_trail
+    #has_paper_trail
     delegate :course, to: :assignment
-    delegate :current_stage, to: :assignment
-    delegate :stage_deadline, to: :assignment
+    #delegate :current_stage, to: :assignment
+    #delegate :stage_deadline, to: :assignment
   
-    PARTICIPANT_TYPES = %w[Course Assignment].freeze
+    #PARTICIPANT_TYPES = %w[Course Assignment].freeze
   
     # define a constant to hold the duty title Mentor
     # this will be used in the duty column of the participant
     # table to define participants who can mentor teams, topics, or assignments
     # since the column's type is VARCHAR(255), other string constants should be
     # defined here to add different duty titles
-    DUTY_MENTOR = 'mentor'.freeze
+    #DUTY_MENTOR = 'mentor'.freeze
   
     # finds team of the participant 
     def team
@@ -54,9 +54,9 @@ class Participant < ApplicationRecord
     def delete(force = nil)
         # find if the participant is either a reviewer or reviewee of an assignment
         maps = ResponseMap.where('reviewee_id = ? or reviewer_id = ?', id, id)  
+        p maps
         # raise if associations exist for the participant unless force
         raise 'Associations exist for this participant.' unless force || (maps.blank? && team.nil?)
-
         # delete response maps associated with the participant
         maps && maps.destroy_all
         # remove the participant from the team

@@ -126,7 +126,6 @@ class Api::V1::ParticipantsController < ApplicationController
         end
 
         target = direction == :course_to_assignment ? assignment : course
-
         any_participant_copied = source.participants.any? { |participant| participant.copy(target.id) }
         if any_participant_copied 
             render json: { message: "The participants from #{source.name} were copied to #{target.name}" }, status: :created
