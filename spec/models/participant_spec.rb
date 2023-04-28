@@ -9,15 +9,6 @@ describe Participant do
   let(:participant2) { FactoryBot.build(:participant, id: 2, user: FactoryBot.build(:student, name: 'John', fullname: 'Doe, John', id: 2)) }
   let(:participant3) { FactoryBot.build(:participant, id: 1, can_review: false, user: FactoryBot.build(:student, name: 'King', fullname: 'Titan, King', id: 3)) }
   let(:participant4) { FactoryBot.build(:participant, id: 4) }
-  let(:assignment) { FactoryBot.build(:assignment, id: 1, name: 'no assgt') }
-  let(:participant5) { FactoryBot.build(:participant, user: user, assignment: assignment) }
-  let(:review_response_map) { FactoryBot.build(:review_response_map, assignment: assignment, reviewer: participant, reviewee: team) }
-  let(:answer) { Answer.new(answer: 1, comments: 'Answer text', question_id: 1) }
-  let(:response) { FactoryBot.build(:response, id: 1, map_id: 1, response_map: review_response_map, scores: [answer]) }
-  let(:question1) { Criterion.new(id: 1, weight: 2, break_before: true) }
-  let(:question2) { Criterion.new(id: 2, weight: 2, break_before: true) }
-  let(:questionnaire1) { ReviewQuestionnaire.new(id: 1, questions: [question1], max_question_score: 5) }
-  let(:questionnaire2) { ReviewQuestionnaire.new(id: 2, questions: [question2], max_question_score: 5) }
   let(:unsorted_participants) {[participant3, participant, participant2]}
   let(:sorted_participants_by_name) {[participant, participant2, participant3]}
   let(:sorted_participants_by_id) {[participant3, participant2, participant]}
