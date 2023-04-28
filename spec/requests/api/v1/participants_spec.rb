@@ -8,6 +8,9 @@ RSpec.describe 'api/v1/participants', type: :request do
   let(:participant2) { FactoryBot.build(:participant, user: FactoryBot.build(:student, name: 'John', fullname: 'Doe, John', id: 2)) }
   let(:participant3) { FactoryBot.build(:participant, id: 3, can_review: false, user: FactoryBot.build(:student, name: 'King', fullname: 'Titan, King', id: 3)) }
   let(:participant5) { FactoryBot.build(:participant, id: 5, user: FactoryBot.build(:student, name: 'John', fullname: 'Doe, John', id: 23)) }
+  let(:assignment1) {FactoryBot.build(:assignment, id: 13, name: 'Assignment Name')}
+  let(:user1) { FactoryBot.build(:student, id: 6, name: 'no name', fullname: 'no two') }
+  let(:assignment_participant1) {FactoryBot.build(:assignment_participant, id:19)}
 
   # test to check index with Assignment model and id
   path '/api/v1/participants/index/{model}/{id}' do
@@ -16,26 +19,26 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # mocking of model and participant array to return array of participants
     let(:model) { 'Assignment' }
-    let(:id) { 1 }
-    let(:assignment_instance) {instance_double(Assignment)}
+    let(:id) { 13 }
 
     # stubbing methods in the mock objects
     before do
       assignment_instance = instance_double(Assignment)
-      allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
-      allow(assignment_instance).to receive(:participants).and_return(participant1)
+      allow(Assignment).to receive(:find).with(id).and_return(assignment1)
+      allow(assignment1).to receive(:participants).and_return(participant1)
     end
 
     # GET request to index method
     get('list participants') do
       tags 'Participants'
       produces 'application/json'
+
     # ok response giving a list of (empty) participants of a given assignment
       response(200, 'ok') do   
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, model_object: assignment_instance, participants: participant1)
+              example: JSON.parse(response.body, model_object: assignment1, participants: participant1)
             }
           }
         end
@@ -44,6 +47,7 @@ RSpec.describe 'api/v1/participants', type: :request do
 
       # error for invalid parameters
       response(422, 'invalid request') do   
+
         # stubbing method to test 404 error
         before do
           allow(Assignment).to receive(:find).with(id).and_return(nil)
@@ -68,23 +72,19 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # mocking models required for method execution
     let(:model) { 'Assignment' }
-    let(:id) { 3 }
+    let(:id) { 6 }
     let(:name) {'ABCD'}
     
     let(:authorization) { '123' }
-    let(:user_instance) { instance_double(User, name: name, id: id) }
     let(:assignment_instance) {instance_double(Assignment)}
     let(:result) {}
     let(:request_body_parameters) {{user: {name: name}, participant:{can_submit: true, can_review: true, can_take_quiz: true}, model: model}}
 
     # adding stubs to mock objects
     before do
-      allow(User).to receive(:find_by).with({name: name}).and_return(user_instance)
+      allow(User).to receive(:find_by).with({name: name}).and_return(user1)
       allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
       allow(assignment_instance).to receive(:participants).and_return(Participant)
-      allow(user_instance).to receive(:id).and_return(23)
-      allow(user_instance).to receive(:name).and_return(name)
-      allow(assignment_instance).to receive(:id).and_return(1)
     end
 
     # POST Request to create method
@@ -121,7 +121,7 @@ RSpec.describe 'api/v1/participants', type: :request do
       # ok response when participant already exists
       response(200, 'ok') do
         before do
-          allow(Participant).to receive(:find_by).with({user_id: user_instance.id}).and_return(participant1)
+          allow(Participant).to receive(:find_by).with({user_id: user1.id}).and_return(participant1)
         end
         after do |example|
           example.metadata[:response][:content] = {
@@ -164,9 +164,9 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # stubbing methods on mock objects
     before do
-      allow(AssignmentParticipant).to receive(:find).with(id).and_return(assignment_participant_instance)
-      allow(assignment_participant_instance).to receive(:handle).and_return(old_handle)
-      allow(assignment_participant_instance).to receive(:update).with(participant_params.permit!).and_return(true)
+      allow(AssignmentParticipant).to receive(:find).with(id).and_return(assignment_participant1)
+      allow(assignment_participant1).to receive(:handle).and_return(old_handle)
+      allow(assignment_participant1).to receive(:update).with(participant_params.permit!).and_return(true)
     end
 
     # patch Request to update_handle method
@@ -197,17 +197,14 @@ RSpec.describe 'api/v1/participants', type: :request do
 
       # ok response saying that handle has been changed
       response(200, 'ok') do  
-        let(:participant) {{handle: new_handle}}
+        let(:participant_handle) {{handle: new_handle}}
         let(:request_body_parameters) {{participant: participant}}
         let(:participant_params) {ActionController::Parameters.new(handle: new_handle)}
-        before do
-          allow(assignment_participant_instance).to receive(:update).with(participant_params.permit!).and_return(true)
-          allow(assignment_participant_instance).to receive(:errors).and_return("error")
-        end
+
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, participant: participant)
+              example: JSON.parse(response.body, participant: participant_handle)
             }
           }
         end
@@ -220,13 +217,12 @@ RSpec.describe 'api/v1/participants', type: :request do
         let(:request_body_parameters) {{participant: participant}}
         let(:participant_params) {ActionController::Parameters.new(handle: new_handle)}
         before do
-          allow(assignment_participant_instance).to receive(:update).with(participant_params.permit!).and_return(false)
-          allow(assignment_participant_instance).to receive(:errors).and_return("error")
+          allow(assignment_participant1).to receive(:update).with(participant_params.permit!).and_return(false)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, error: assignment_participant_instance.errors)
+              example: JSON.parse(response.body, error: assignment_participant1.errors)
             }
           }
         end
@@ -241,12 +237,11 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # mocking models required
     let(:id) { 1 }
-    let(:participant_instance) {instance_double(Participant)}
 
     # stubbing methods on mock objects
     before do
-      allow(Participant).to receive(:find).with(id).and_return(participant_instance)
-      allow(participant_instance).to receive(:update).and_return({:can_submit=>true, :can_review=>true, :can_take_quiz=>true})
+      allow(Participant).to receive(:find).with(id).and_return(participant1)
+      allow(participant1).to receive(:update).and_return({:can_submit=>true, :can_review=>true, :can_take_quiz=>true})
     end
 
     # PATCH request to update_authorizations method of participant
@@ -263,15 +258,15 @@ RSpec.describe 'api/v1/participants', type: :request do
         }
       }
 
-      let(:participant) {{can_submit: true, can_review: true, can_take_quiz: true}}
-      let(:authorizations) {participant}
+      let(:participant_authorizations) {{can_submit: true, can_review: true, can_take_quiz: true}}
+      let(:authorizations) {participant_authorizations}
 
       # ok response after updating authorizations
       response(200, 'ok') do
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, participant: participant_instance)
+              example: JSON.parse(response.body, participant: participant1)
             }
           }
         end
@@ -281,13 +276,12 @@ RSpec.describe 'api/v1/participants', type: :request do
       # error request
       response(422, 'invalid request') do
         before do
-          allow(participant_instance).to receive(:update).and_return(false)
-          allow(participant_instance).to receive(:errors).and_return("error")
+          allow(participant1).to receive(:update).and_return(false)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, error: participant_instance.errors)
+              example: JSON.parse(response.body, error: participant1.errors)
             }
           }
         end
@@ -302,15 +296,13 @@ RSpec.describe 'api/v1/participants', type: :request do
     
     # mocking models that are required for method execution
     let(:id) {13}
-    let(:assignment_instance) {instance_double(Assignment, id: id)}
     let(:course_instance) {instance_double(Course)}
-    let(:assignment_participant_instance) {instance_double(AssignmentParticipant)}
     let(:participants) {[]}
 
     # stubbing methods on mock objects
     before do
-      allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
-      allow(assignment_instance).to receive(:course).and_return(nil)
+      allow(Assignment).to receive(:find).with(id).and_return(assignment1)
+      allow(assignment1).to receive(:course).and_return(nil)
     end
 
     # GET Request to inherit method
@@ -332,8 +324,7 @@ RSpec.describe 'api/v1/participants', type: :request do
       # error response for when there are no participants
       response(404, 'resource not found') do
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
+          allow(assignment1).to receive(:course).and_return(course_instance)
           allow(course_instance).to receive(:participants).and_return(participants)
           allow(course_instance).to receive(:name).and_return('Course Name')
         end
@@ -349,19 +340,17 @@ RSpec.describe 'api/v1/participants', type: :request do
 
       # ok response after "inheriting" participants from course to assignment
       response(200, 'ok') do
-        let(:participants) {[assignment_participant_instance]}
+        let(:participants) {[assignment_participant1]}
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
+          allow(assignment1).to receive(:course).and_return(course_instance)
           allow(course_instance).to receive(:participants).and_return(participants)
           allow(course_instance).to receive(:name).and_return('Course Name')
-          allow(assignment_instance).to receive(:name).and_return('Assignment Name')
-          allow(assignment_participant_instance).to receive(:copy)
+          allow(assignment_participant1).to receive(:copy)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, note: "All of #{course_instance.name} participants are already in #{assignment_instance.name}")
+              example: JSON.parse(response.body, note: "All of #{course_instance.name} participants are already in #{assignment1.name}")
             }
           }
         end
@@ -370,19 +359,17 @@ RSpec.describe 'api/v1/participants', type: :request do
 
       # "created" response after inherit is complete
       response(201, 'created') do
-        let(:participants) {[assignment_participant_instance]}
+        let(:participants) {[assignment_participant1]}
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
+          allow(assignment1).to receive(:course).and_return(course_instance)
           allow(course_instance).to receive(:participants).and_return(participants)
           allow(course_instance).to receive(:name).and_return('Course Name')
-          allow(assignment_instance).to receive(:name).and_return('Assignment Name')
-          allow(assignment_participant_instance).to receive(:copy).with(id).and_return(true)
+          allow(assignment_participant1).to receive(:copy).with(id).and_return(true)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, message: "The participants from #{course_instance.name} were copied to #{assignment_instance.name}")
+              example: JSON.parse(response.body, message: "The participants from #{course_instance.name} were copied to #{assignment1.name}")
             }
           }
         end
@@ -397,15 +384,15 @@ RSpec.describe 'api/v1/participants', type: :request do
 
     # Mocking models that are required
     let(:id) {13}
-    let(:assignment_instance) {instance_double(Assignment, id: id)}
+    #let(:assignment_instance) {instance_double(Assignment, id: id)}
     let(:course_instance) {instance_double(Course, id: 7)}
     let(:course_participant_instance) {instance_double(CourseParticipant)}
     let(:participants) {[]}
 
     # stubbing methods on mock objects
     before do
-      allow(Assignment).to receive(:find).with(id).and_return(assignment_instance)
-      allow(assignment_instance).to receive(:course).and_return(nil)
+      allow(Assignment).to receive(:find).with(id).and_return(assignment1)
+      allow(assignment1).to receive(:course).and_return(nil)
     end
 
     # GET request to bequeath methof
@@ -427,15 +414,14 @@ RSpec.describe 'api/v1/participants', type: :request do
       # error for Course has no Participants
       response(404, 'resource not found') do
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
-          allow(assignment_instance).to receive(:participants).and_return(participants)
-          allow(assignment_instance).to receive(:name).and_return('Assignment Name')
+          allow(assignment1).to receive(:course).and_return(course_instance)
+          allow(assignment1).to receive(:participants).and_return(participants)
+          #allow(assignment_instance).to receive(:name).and_return('Assignment Name')
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, note: "No participants were found for this #{assignment_instance.name}")
+              example: JSON.parse(response.body, note: "No participants were found for this #{assignment1.name}")
             }
           }
         end
@@ -446,17 +432,15 @@ RSpec.describe 'api/v1/participants', type: :request do
       response(200, 'ok') do
         let(:participants) {[course_participant_instance]}
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
-          allow(assignment_instance).to receive(:participants).and_return(participants)
+          allow(assignment1).to receive(:course).and_return(course_instance)
+          allow(assignment1).to receive(:participants).and_return(participants)
           allow(course_instance).to receive(:name).and_return('Course Name')
-          allow(assignment_instance).to receive(:name).and_return('Assignment Name')
           allow(course_participant_instance).to receive(:copy)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, note: "All of #{course_instance.name} participants are already in #{assignment_instance.name}")
+              example: JSON.parse(response.body, note: "All of #{course_instance.name} participants are already in #{assignment1.name}")
             }
           }
         end
@@ -467,17 +451,15 @@ RSpec.describe 'api/v1/participants', type: :request do
       response(201, 'created') do
         let(:participants) {[course_participant_instance]}
         before do
-          allow(assignment_instance).to receive(:course).and_return(course_instance)
-          allow(course_instance).to receive(:nil?).and_return(false)
-          allow(assignment_instance).to receive(:participants).and_return(participants)
+          allow(assignment1).to receive(:course).and_return(course_instance)
+          allow(assignment1).to receive(:participants).and_return(participants)
           allow(course_instance).to receive(:name).and_return('Course Name')
-          allow(assignment_instance).to receive(:name).and_return('Assignment Name')
           allow(course_participant_instance).to receive(:copy).with(7).and_return(true)
         end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
-              example: JSON.parse(response.body, message: "The participants from #{course_instance.name} were copied to #{assignment_instance.name}")
+              example: JSON.parse(response.body, message: "The participants from #{course_instance.name} were copied to #{assignment1.name}")
             }
           }
         end
@@ -489,14 +471,11 @@ RSpec.describe 'api/v1/participants', type: :request do
   # test to destroy participants
   path '/api/v1/participants/{id}' do
     parameter name: 'id', in: :path, type: :integer, description: 'id of the participant'
-    let(:id) { 1 }
-    let(:assignment_participant_instance) {instance_double(AssignmentParticipant)}
-    let(:an_object) {instance_double(Object)}
-    
+    let(:id) { 19 }
+    #let(:assignment_participant_instance) {instance_double(AssignmentParticipant)}
     # stubbing methods to the mock objects
     before do
       allow(Participant).to receive(:find).with(id).and_return(participant1)
-      allow(an_object).to receive(:present?).and_return(false)
     end
 
     # DELETE Request to participant
@@ -522,9 +501,6 @@ RSpec.describe 'api/v1/participants', type: :request do
 
       # error if destroy participant produces error
       response(422, 'invalid request') do
-        before do
-          #allow(participant_instance).to receive(:destroy).and_return(false)
-        end
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
